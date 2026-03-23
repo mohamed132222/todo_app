@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_app/home/add_task_bottom_sheet.dart';
 import 'package:todo_app/home/settings/settings_tab.dart';
 import 'package:todo_app/home/todo_list/todo_list_tab.dart';
 import 'package:todo_app/my_theme.dart';
@@ -38,7 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          showAddTaskBottomSheet(context);
+        },
         child: const Icon(Icons.add, color: MyTheme.whiteColor),
         shape: StadiumBorder(
           side: BorderSide(
@@ -91,4 +94,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Widget> tabs = const [TodoListTab(), SettingsTab()];
+
+  void showAddTaskBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => AddTaskBottomSheet(),
+    );
+  }
 }

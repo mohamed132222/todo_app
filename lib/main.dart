@@ -1,13 +1,18 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/home/home_screen.dart';
 import 'package:todo_app/home/splash_screen.dart';
 import 'package:todo_app/providers/settings_provider.dart';
 
+import 'firebase_options.dart';
+import 'home/todo_list/task_update_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'my_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
     ChangeNotifierProvider(
       create: (context) => SettingsProvider(),
@@ -34,6 +39,7 @@ class MyApp extends StatelessWidget {
       routes: {
         SplashScreen.routeName: (context) => SplashScreen(),
         HomeScreen.routeName: (context) => HomeScreen(),
+        TaskUpdateScreen.routeName: (context) => TaskUpdateScreen(),
       },
     );
   }

@@ -39,6 +39,8 @@ dependencies:
     sdk: flutter
 
   provider: ^6.1.5+1
+  flutter_slidable: ^4.0.3
+  firebase_core: ^4.6.0
 
 dev_dependencies:
   flutter_test:
