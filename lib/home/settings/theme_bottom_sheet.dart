@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/my_theme.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../my_theme.dart';
 import '../../providers/settings_provider.dart';
 
 class ThemeBottomSheet extends StatefulWidget {
@@ -16,14 +16,15 @@ class _ThemeBottomSheetState extends State<ThemeBottomSheet> {
   @override
   Widget build(BuildContext context) {
     var provider = Provider.of<SettingsProvider>(context);
+
     return Container(
       color: provider.isDark() ? MyTheme.darkColor : MyTheme.whiteColor,
-      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
       height: MediaQuery.of(context).size.height * 0.5,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // خيار الثيم الفاتح
           InkWell(
             onTap: () {
               provider.changeTheme(ThemeMode.light);
@@ -32,7 +33,9 @@ class _ThemeBottomSheetState extends State<ThemeBottomSheet> {
                 ? unSelectedItem(AppLocalizations.of(context)!.light, provider)
                 : selectedItem(AppLocalizations.of(context)!.light),
           ),
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
+
+          // خيار الثيم الغامق
           InkWell(
             onTap: () {
               provider.changeTheme(ThemeMode.dark);
@@ -46,6 +49,7 @@ class _ThemeBottomSheetState extends State<ThemeBottomSheet> {
     );
   }
 
+  // عنصر محدد (Selected) مع علامة ✔
   Widget selectedItem(String text) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -58,11 +62,12 @@ class _ThemeBottomSheetState extends State<ThemeBottomSheet> {
             fontSize: 25,
           ),
         ),
-        Icon(Icons.check, color: MyTheme.primaryColor, size: 30),
+        const Icon(Icons.check, color: MyTheme.primaryColor, size: 30),
       ],
     );
   }
 
+  // عنصر غير محدد (Unselected)
   Widget unSelectedItem(String text, SettingsProvider provider) {
     return Row(
       children: [

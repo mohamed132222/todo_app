@@ -3,32 +3,49 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../model/task.dart';
 import '../../my_theme.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../utils/firebase_utils.dart';
+import 'task_update_screen.dart';
 
-class TaskItem extends StatelessWidget {
-  const TaskItem({super.key});
+class TaskItem extends StatefulWidget {
+  final Task task;
 
+  TaskItem({required this.task, super.key});
+
+  @override
+  State<TaskItem> createState() => _TaskItemState();
+}
+
+class _TaskItemState extends State<TaskItem> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    var provider = Provider.of<SettingsProvider>(context);
+    var provider = Provider.of<SettingsProvider>(context, listen: false);
+    var authProvider = Provider.of<AuthProviderApp>(context, listen: false);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
       child: InkWell(
-        onTap: () {
-          // navigate to update screen
-          Navigator.pushNamed(context, '/task_update');
-        },
         borderRadius: BorderRadius.circular(15),
+        onTap: () {
+          // الانتقال لشاشة تحديث المهمة
+          Navigator.pushNamed(
+            context,
+            TaskUpdateScreen.routeName,
+            arguments: widget.task,
+          );
+        },
         child: Slidable(
-          key: const ValueKey('task_item'), // ✅ important for performance
+          key: const ValueKey('task_item'),
           startActionPane: ActionPane(
             extentRatio: 0.25,
             motion: const ScrollMotion(),
             dismissible: DismissiblePane(
               onDismissed: () {
-                // delete task
+                // يمكن هنا إضافة حذف المهمة بالسحب
               },
             ),
             children: [
@@ -37,7 +54,19 @@ class TaskItem extends StatelessWidget {
                   topLeft: Radius.circular(15),
                   bottomLeft: Radius.circular(15),
                 ),
-                onPressed: (context) {},
+                onPressed: (context) {
+                  // حذف المهمة من Firebase
+                  FirebaseUtils.deleteTask(
+                    widget.task,
+                    authProvider.currentUser?.id ?? "",
+                  ).timeout(
+                    const Duration(milliseconds: 500),
+                    onTimeout: () => print("task deleted successfully"),
+                  );
+
+                  // إعادة تحميل قائمة المهام
+                  provider.getAllTask(authProvider.currentUser!.id!);
+                },
                 backgroundColor: MyTheme.redColor,
                 foregroundColor: MyTheme.whiteColor,
                 icon: Icons.delete,
@@ -45,9 +74,8 @@ class TaskItem extends StatelessWidget {
               ),
             ],
           ),
-
           child: Container(
-            width: double.infinity, // ✅ FIX: remove fixed width
+            width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 15),
             decoration: BoxDecoration(
               color: provider.isDark() ? MyTheme.darkColor : MyTheme.whiteColor,
@@ -55,36 +83,62 @@ class TaskItem extends StatelessWidget {
             ),
             child: Row(
               children: [
-                /// Left color bar
+                // شريط اللون على اليسار
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   width: 4,
-                  height: mediaQuery.size.height * 0.08, // responsive height
+                  height: mediaQuery.size.height * 0.08,
                   decoration: BoxDecoration(
-                    color: MyTheme.primaryColor,
+                    color: widget.task.isDone!
+                        ? MyTheme.greenColor
+                        : MyTheme.primaryColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
 
-                /// Text section
+                // قسم النصوص
                 Expanded(
-                  // ✅ prevents overflow
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // عنوان المهمة
                       Text(
-                        "Play basket ball",
+                        widget.task.title ?? "",
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis, // ✅ responsive text
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontSize: mediaQuery.size.width * 0.045,
                               fontWeight: FontWeight.w700,
-                              color: MyTheme.primaryColor,
+                              color: widget.task.isDone!
+                                  ? MyTheme.greenColor
+                                  : provider.isDark()
+                                  ? MyTheme.whiteColor
+                                  : MyTheme.primaryColor,
                             ),
                       ),
                       const SizedBox(height: 5),
+
+                      // وصف المهمة
+                      Text(
+                        widget.task.description ?? "",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontSize: mediaQuery.size.width * 0.045,
+                              fontWeight: FontWeight.w700,
+                              color: widget.task.isDone!
+                                  ? MyTheme.greenColor
+                                  : provider.isDark()
+                                  ? MyTheme.whiteColor
+                                  : MyTheme.blackColor,
+                            ),
+                      ),
+                      const SizedBox(height: 5),
+
+                      // التاريخ
                       Row(
                         children: [
                           Icon(
@@ -96,7 +150,7 @@ class TaskItem extends StatelessWidget {
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            "10:00 AM",
+                            "${widget.task.date?.day}/${widget.task.date?.month}/${widget.task.date?.year}",
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   fontSize: mediaQuery.size.width * 0.035,
@@ -108,24 +162,45 @@ class TaskItem extends StatelessWidget {
                   ),
                 ),
 
-                /// Done button
+                // زر علامة "تمت المهمة"
                 InkWell(
-                  onTap: () {
-                    // mark as done
-                  },
                   borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: mediaQuery.size.width * 0.04,
-                      vertical: mediaQuery.size.height * 0.01,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: MyTheme.primaryColor,
-                    ),
-                    child: const Icon(Icons.check, color: Colors.white),
-                  ),
+                  onTap: () {
+                    // تحديث حالة المهمة في Firebase
+                    FirebaseUtils.updateIsDone(
+                      widget.task,
+                      authProvider.currentUser?.id ?? "",
+                    );
+
+                    // تحديث الواجهة
+                    setState(() {
+                      widget.task.isDone = !widget.task.isDone!;
+                    });
+                  },
+                  child: widget.task.isDone!
+                      ? const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Text(
+                            "IsDone!",
+                            style: TextStyle(
+                              color: MyTheme.greenColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: mediaQuery.size.width * 0.04,
+                            vertical: mediaQuery.size.height * 0.01,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: MyTheme.primaryColor,
+                          ),
+                          child: const Icon(Icons.check, color: Colors.white),
+                        ),
                 ),
               ],
             ),

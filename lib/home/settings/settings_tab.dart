@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/home/settings/language_bottom_sheet.dart';
-import 'package:todo_app/home/settings/theme_bottom_sheet.dart';
-import 'package:todo_app/my_theme.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../my_theme.dart';
 import '../../providers/settings_provider.dart';
+import 'language_bottom_sheet.dart';
+import 'theme_bottom_sheet.dart';
 
 class SettingsTab extends StatelessWidget {
   static const String routeName = '/settings';
@@ -25,6 +25,7 @@ class SettingsTab extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // إعداد اللغة
               buildSettingItem(
                 context: context,
                 title: AppLocalizations.of(context)!.language,
@@ -36,6 +37,8 @@ class SettingsTab extends StatelessWidget {
                 textTheme: textTheme,
               ),
               const SizedBox(height: 30),
+
+              // إعداد الثيم (فاتح / غامق)
               buildSettingItem(
                 context: context,
                 title: AppLocalizations.of(context)!.theme,
@@ -53,6 +56,7 @@ class SettingsTab extends StatelessWidget {
     );
   }
 
+  // عنصر الإعدادات (لغة أو ثيم)
   Widget buildSettingItem({
     required BuildContext context,
     required String title,
@@ -64,6 +68,7 @@ class SettingsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // عنوان الإعداد
         Text(
           title,
           style: textTheme.titleMedium?.copyWith(
@@ -73,6 +78,8 @@ class SettingsTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
+
+        // صندوق الإعداد القابل للنقر
         InkWell(
           onTap: onTap,
           child: Container(
@@ -105,6 +112,7 @@ class SettingsTab extends StatelessWidget {
     );
   }
 
+  // عرض BottomSheet لاختيار اللغة
   void showLanguageBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -116,6 +124,7 @@ class SettingsTab extends StatelessWidget {
     );
   }
 
+  // عرض BottomSheet لاختيار الثيم
   void showThemeBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,

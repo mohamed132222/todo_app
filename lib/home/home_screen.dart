@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/home/add_task_bottom_sheet.dart';
-import 'package:todo_app/home/settings/settings_tab.dart';
-import 'package:todo_app/home/todo_list/todo_list_tab.dart';
 import 'package:todo_app/my_theme.dart';
 
+import '../auth/login_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
+import 'add_task_bottom_sheet.dart';
 import 'nav_item.dart';
+import 'settings/settings_tab.dart';
+import 'todo_list/todo_list_tab.dart';
 
 class HomeScreen extends StatefulWidget {
   static const String routeName = '/home';
 
-  HomeScreen({super.key});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -21,13 +23,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
 
+  final List<Widget> tabs = const [TodoListTab(), SettingsTab()];
+
   @override
   Widget build(BuildContext context) {
     var provider = Provider.of<SettingsProvider>(context);
+    var authProvider = Provider.of<AuthProviderApp>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          AppLocalizations.of(context)!.todo_list,
+          "${AppLocalizations.of(context)!.todo_list} ${authProvider.currentUser?.username ?? ''}",
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w700,
@@ -36,13 +42,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 : MyTheme.whiteColor,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              provider.taskList = [];
+              authProvider.currentUser = null;
+              Navigator.pushReplacementNamed(context, LoginScreen.routeName);
+            },
+            icon: const Icon(Icons.logout),
+          ),
+        ],
       ),
+      body: IndexedStack(index: selectedIndex, children: tabs),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showAddTaskBottomSheet(context);
-        },
-        child: const Icon(Icons.add, color: MyTheme.whiteColor),
+        onPressed: () => showAddTaskBottomSheet(context),
         shape: StadiumBorder(
           side: BorderSide(
             color: provider.isDark() ? MyTheme.greyColor : MyTheme.whiteColor,
@@ -50,10 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         backgroundColor: MyTheme.primaryColor,
+        child: const Icon(Icons.add, color: MyTheme.whiteColor),
       ),
       bottomNavigationBar: BottomAppBar(
         color: provider.isDark() ? MyTheme.darkColor : MyTheme.whiteColor,
-        shape: CircularNotchedRectangle(), // ✅ notch
+        shape: const CircularNotchedRectangle(),
         notchMargin: 15,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -63,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
               label: AppLocalizations.of(context)!.todo_list,
               index: 0,
             ),
-
             buildNavItem(
               icon: Icons.settings,
               label: AppLocalizations.of(context)!.settings,
@@ -72,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: IndexedStack(index: selectedIndex, children: tabs),
     );
   }
 
@@ -93,8 +106,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<Widget> tabs = const [TodoListTab(), SettingsTab()];
-
   void showAddTaskBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -102,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => AddTaskBottomSheet(),
+      builder: (_) => const AddTaskBottomSheet(),
     );
   }
 }
